@@ -52,6 +52,18 @@ class RING_EXCHANGE(CouplingModel,MPOModel):
         self.add_multi_coupling( 4.0 * J , [('Sy', [0,0], 0), ('Sy', [0,1], 0), ('Sz', [1,0], 0), ('Sz', [1,1], 0)])
         self.add_multi_coupling( 4.0 * J , [('Sz', [0,0], 0), ('Sz', [0,1], 0), ('Sz', [1,0], 0), ('Sz', [1,1], 0)])
 
+
+        # (S_{i} . S_{i+x}) (S_{i+y} . S_{i+x+y}) 
+        self.add_multi_coupling( 4.0 * J , [('Sx', [0,0], 0), ('Sx', [1,0], 0), ('Sx', [0,1], 0), ('Sx', [1,1], 0)])
+        self.add_multi_coupling( 4.0 * J , [('Sy', [0,0], 0), ('Sy', [1,0], 0), ('Sx', [0,1], 0), ('Sx', [1,1], 0)])
+        self.add_multi_coupling( 4.0 * J , [('Sz', [0,0], 0), ('Sz', [1,0], 0), ('Sx', [0,1], 0), ('Sx', [1,1], 0)])
+        self.add_multi_coupling( 4.0 * J , [('Sx', [0,0], 0), ('Sx', [1,0], 0), ('Sy', [0,1], 0), ('Sy', [1,1], 0)])
+        self.add_multi_coupling( 4.0 * J , [('Sy', [0,0], 0), ('Sy', [1,0], 0), ('Sy', [0,1], 0), ('Sy', [1,1], 0)])
+        self.add_multi_coupling( 4.0 * J , [('Sz', [0,0], 0), ('Sz', [1,0], 0), ('Sy', [0,1], 0), ('Sy', [1,1], 0)])
+        self.add_multi_coupling( 4.0 * J , [('Sx', [0,0], 0), ('Sx', [1,0], 0), ('Sz', [0,1], 0), ('Sz', [1,1], 0)])
+        self.add_multi_coupling( 4.0 * J , [('Sy', [0,0], 0), ('Sy', [1,0], 0), ('Sz', [0,1], 0), ('Sz', [1,1], 0)])
+        self.add_multi_coupling( 4.0 * J , [('Sz', [0,0], 0), ('Sz', [1,0], 0), ('Sz', [0,1], 0), ('Sz', [1,1], 0)])
+
         
         MPOModel.__init__(self, lat, self.calc_H_MPO())
         
