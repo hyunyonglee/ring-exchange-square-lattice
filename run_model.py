@@ -11,6 +11,12 @@ import matplotlib.pyplot as plt
 import pickle
 import model
 
+def ensure_dir(f):
+    d=os.path.dirname(f)
+    if not os.path.exists(d):
+        os.makedirs(d)
+    return d;
+
 import logging.config
 conf = {
     'version': 1,
@@ -33,16 +39,16 @@ os.environ["OMP_NUM_THREADS"] = "68"
 
 Lx = int(sys.argv[1])
 Ly = int(sys.argv[2])
-J = float(sys.argv[3])
-eta = float(sys.argv[4])
-CHI = int(sys.argv[5])
-PATH = sys.argv[6]
+phi = float(sys.argv[3])
+CHI = int(sys.argv[4])
+PATH = sys.argv[5]
 
 model_params = {
     "Lx": Lx,
     "Ly": Ly,
-    "J": J,
-    "eta": eta
+    # "J": J,
+    # "eta": eta
+    "phi": phi
 }
 
 print("\n\n\n%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
@@ -51,11 +57,10 @@ M = model.RING_EXCHANGE(model_params)
 product_state = ["up"] * M.lat.N_sites
 psi = MPS.from_product_state(M.lat.mps_sites(), product_state, bc=M.lat.bc_MPS)
 
-# if IS == 'random':
-#     TEBD_params = {'N_steps': 10, 'trunc_params':{'chi_max': 20}, 'verbose': 0}
-#     eng = tebd.RandomUnitaryEvolution(psi, TEBD_params)
-#     eng.run()
-#     psi.canonical_form() 
+TEBD_params = {'N_steps': 10, 'trunc_params':{'chi_max': 20}, 'verbose': 0}
+eng = tebd.RandomUnitaryEvolution(psi, TEBD_params)
+eng.run()
+psi.canonical_form() 
 
 dmrg_params = {
     'mixer': True,  # setting this to True helps to escape local minima
@@ -69,44 +74,79 @@ dmrg_params = {
 
 eng = dmrg.TwoSiteDMRGEngine(psi, M, dmrg_params)
 E, psi = eng.run()  # equivalent to dmrg.run() up to the return parameters.
-EE = psi.entanglement_entropy()
 
-print(EE)
-
-'''
-mag_x = psi.expectation_value("Sigmax")
-mag_y = psi.expectation_value("Sigmay")
-mag_z = psi.expectation_value("Sigmaz")
+mag_x = psi.expectation_value("Sx")
+mag_y = psi.expectation_value("Sy")
+mag_z = psi.expectation_value("Sz")
 EE = psi.entanglement_entropy()
 ES = psi.entanglement_spectrum()
 
+corr_ver_x =[]
+corr_ver_y =[]
+corr_ver_z =[]
 
-file_Energy = open(PATH+"/Energy.txt","a")
-file_Energy.write(repr(K) + " " + repr(r) + " " + repr(E) + " " + repr(psi.correlation_length()) + " " + "\n")
-file_ES = open(PATH+"/Entanglement_Spectrum.txt","a")
-file_ES.write(repr(K) + " " + repr(r) + " " + "  ".join(map(str, ES[int(Ly/2)])) + " " + "\n")
-file_EE = open(PATH+"/Entanglement_Entropy.txt","a")
-file_EE.write(repr(K) + " " + repr(r) + " " + "  ".join(map(str, EE)) + " " + "\n")
-file_Ws = open(PATH+"/Flux.txt","a")
-file_Ws.write(repr(K) + " " + repr(r) + " " + "  ".join(map(str, Fluxes)) + " " + "\n")
-file_Sx = open(PATH+"/Sx.txt","a")
-file_Sx.write(repr(K) + " " + repr(r) + " " + "  ".join(map(str, mag_x)) + " " + "\n")
-file_Sy = open(PATH+"/Sy.txt","a")
-file_Sy.write(repr(K) + " " + repr(r) + " " + "  ".join(map(str, mag_y)) + " " + "\n")
-file_Sz = open(PATH+"/Sz.txt","a")
-file_Sz.write(repr(K) + " " + repr(r) + " " + "  ".join(map(str, mag_z)) + " " + "\n")
-file_Current = open("Current.txt","a")
-file_Current.write(repr(K) + " " + repr(r) + " " + "  ".join(map(str, C)) + " " + "\n")
+corr_hor_x =[]
+corr_hor_y =[]
+corr_hor_z =[]
 
-file_STAT = open( (PATH+"/Stat_r%.2f.txt" % r) ,"a")
-file_STAT.write(" " + "  ".join(map(str,eng.sweep_stats['E'])) + " " + "\n")
-file_STAT.write(" " + "  ".join(map(str,eng.sweep_stats['S'])) + " " + "\n")
-file_STAT.write(" " + "  ".join(map(str,eng.sweep_stats['max_trunc_err'])) + " " + "\n")
-file_STAT.write(" " + "  ".join(map(str,eng.sweep_stats['norm_err'])) + " " + "\n")
+# measuring NN spin correlation
+for i in range(0,Lx):
+    for j in range(0, Ly):
 
-filename = 'psi_r%.2f.pkl' % r
-with open( filename, 'wb') as f:
+        I = i*Ly + j
+        J = I + 1
+        if j==(Ly-1):
+            J = J - Ly
+        
+        corr_ver_x.append( psi.expectation_value_term([('Sx',I),('Sx',J)]) )
+        corr_ver_y.append( psi.expectation_value_term([('Sy',I),('Sy',J)]) )
+        corr_ver_z.append( psi.expectation_value_term([('Sz',I),('Sz',J)]) )
+        
+        J = I + Ly
+        corr_hor_x.append( psi.expectation_value_term([('Sx',I),('Sx',J)]) )
+        corr_hor_y.append( psi.expectation_value_term([('Sy',I),('Sy',J)]) )
+        corr_hor_z.append( psi.expectation_value_term([('Sz',I),('Sz',J)]) )
+
+ensure_dir(PATH + "observables/")
+ensure_dir(PATH + "entanglement/")
+ensure_dir(PATH + "logs/")
+ensure_dir(PATH + "mps/")
+
+file_Energy = open( PATH + "observables/energy_phi%.2f.txt" % phi,"a")
+file_Energy.write(repr(E) + " " + repr(psi.correlation_length()) + " " + "\n")
+
+file_Ss = open( PATH + "observables/magnetization_phi%.2f.txt" % phi,"a")
+file_Ss.write("  ".join(map(str, mag_x)) + " " + "\n")
+file_Ss.write("  ".join(map(str, mag_y)) + " " + "\n")
+file_Ss.write("  ".join(map(str, mag_z)) + " " + "\n")
+
+file_CORR = open( PATH + "observables/nn_corr_comp_phi%.2f.txt" % phi ,"a")
+file_CORR.write("  ".join(map(str,corr_hor_x)) + " " + "\n")
+file_CORR.write("  ".join(map(str,corr_hor_y)) + " " + "\n")
+file_CORR.write("  ".join(map(str,corr_hor_z)) + " " + "\n")
+file_CORR.write("  ".join(map(str,corr_ver_x)) + " " + "\n")
+file_CORR.write("  ".join(map(str,corr_ver_y)) + " " + "\n")
+file_CORR.write("  ".join(map(str,corr_ver_z)) + " " + "\n")
+
+file_CORR = open( PATH + "observables/nn_corr_phi%.2f.txt" % phi ,"a")
+file_CORR.write("  ".join(map(str, np.array(corr_hor_x) + np.array(corr_hor_y) + np.array(corr_hor_z))) + " " + "\n")
+file_CORR.write("  ".join(map(str,corr_ver_x + corr_ver_y + corr_ver_z)) + " " + "\n")
+
+
+# file_Energy.write(repr(E) + " " + "\n")
+file_ES = open( PATH + "entanglement/es_phi%.2f.txt" % phi,"a")
+for i in range(0,Lx*Ly):
+    file_ES.write("  ".join(map(str, ES[i])) + " " + "\n")
+file_EE = open( PATH + "entanglement/ee_phi%.2f.txt" % phi,"a")
+file_EE.write("  ".join(map(str, EE)) + " " + "\n")
+
+file_STAT = open( PATH + "logs/stat_phi%.2f.txt" % phi,"a")
+file_STAT.write("  ".join(map(str,eng.sweep_stats['E'])) + " " + "\n")
+file_STAT.write("  ".join(map(str,eng.sweep_stats['S'])) + " " + "\n")
+file_STAT.write("  ".join(map(str,eng.sweep_stats['max_trunc_err'])) + " " + "\n")
+file_STAT.write("  ".join(map(str,eng.sweep_stats['norm_err'])) + " " + "\n")
+
+with open( PATH + 'mps/psi_phi%.2f.pkl' % phi, 'wb') as f:
     pickle.dump(psi, f)
 
 print("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n\n\n")
-'''
