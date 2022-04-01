@@ -48,19 +48,20 @@ model_params = {
     "Ly": Ly,
     # "J": J,
     # "eta": eta
-    "phi": phi
+    "phi": phi,
+    "qn": 'Sz'
 }
 
 print("\n\n\n%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 M = model.RING_EXCHANGE(model_params)
 
-product_state = ["up"] * M.lat.N_sites
+product_state = ["up","down"] * int(M.lat.N_sites/2)
 psi = MPS.from_product_state(M.lat.mps_sites(), product_state, bc=M.lat.bc_MPS)
 
-TEBD_params = {'N_steps': 10, 'trunc_params':{'chi_max': 20}, 'verbose': 0}
-eng = tebd.RandomUnitaryEvolution(psi, TEBD_params)
-eng.run()
-psi.canonical_form() 
+# TEBD_params = {'N_steps': 10, 'trunc_params':{'chi_max': 20}, 'verbose': 0}
+# eng = tebd.RandomUnitaryEvolution(psi, TEBD_params)
+# eng.run()
+# psi.canonical_form() 
 
 dmrg_params = {
     'mixer': True,  # setting this to True helps to escape local minima
@@ -75,18 +76,18 @@ dmrg_params = {
 eng = dmrg.TwoSiteDMRGEngine(psi, M, dmrg_params)
 E, psi = eng.run()  # equivalent to dmrg.run() up to the return parameters.
 
-mag_x = psi.expectation_value("Sx")
-mag_y = psi.expectation_value("Sy")
+mag_p = psi.expectation_value("Sp")
+mag_m = psi.expectation_value("Sm")
 mag_z = psi.expectation_value("Sz")
 EE = psi.entanglement_entropy()
 ES = psi.entanglement_spectrum()
 
-corr_ver_x =[]
-corr_ver_y =[]
+corr_ver_pm =[]
+corr_ver_mp =[]
 corr_ver_z =[]
 
-corr_hor_x =[]
-corr_hor_y =[]
+corr_hor_pm =[]
+corr_hor_mp =[]
 corr_hor_z =[]
 
 # measuring NN spin correlation
@@ -98,13 +99,13 @@ for i in range(0,Lx):
         if j==(Ly-1):
             J = J - Ly
         
-        corr_ver_x.append( psi.expectation_value_term([('Sx',I),('Sx',J)]) )
-        corr_ver_y.append( psi.expectation_value_term([('Sy',I),('Sy',J)]) )
+        corr_ver_pm.append( psi.expectation_value_term([('Sp',I),('Sm',J)]) )
+        corr_ver_mp.append( psi.expectation_value_term([('Sm',I),('Sp',J)]) )
         corr_ver_z.append( psi.expectation_value_term([('Sz',I),('Sz',J)]) )
         
         J = I + Ly
-        corr_hor_x.append( psi.expectation_value_term([('Sx',I),('Sx',J)]) )
-        corr_hor_y.append( psi.expectation_value_term([('Sy',I),('Sy',J)]) )
+        corr_hor_pm.append( psi.expectation_value_term([('Sp',I),('Sm',J)]) )
+        corr_hor_mp.append( psi.expectation_value_term([('Sm',I),('Sp',J)]) )
         corr_hor_z.append( psi.expectation_value_term([('Sz',I),('Sz',J)]) )
 
 ensure_dir(PATH + "observables/")
@@ -116,21 +117,13 @@ file_Energy = open( PATH + "observables/energy_phi%.2f.txt" % phi,"a")
 file_Energy.write(repr(E) + " " + repr(psi.correlation_length()) + " " + "\n")
 
 file_Ss = open( PATH + "observables/magnetization_phi%.2f.txt" % phi,"a")
-file_Ss.write("  ".join(map(str, mag_x)) + " " + "\n")
-file_Ss.write("  ".join(map(str, mag_y)) + " " + "\n")
+file_Ss.write("  ".join(map(str, mag_p)) + " " + "\n")
+file_Ss.write("  ".join(map(str, mag_m)) + " " + "\n")
 file_Ss.write("  ".join(map(str, mag_z)) + " " + "\n")
 
-file_CORR = open( PATH + "observables/nn_corr_comp_phi%.2f.txt" % phi ,"a")
-file_CORR.write("  ".join(map(str,corr_hor_x)) + " " + "\n")
-file_CORR.write("  ".join(map(str,corr_hor_y)) + " " + "\n")
-file_CORR.write("  ".join(map(str,corr_hor_z)) + " " + "\n")
-file_CORR.write("  ".join(map(str,corr_ver_x)) + " " + "\n")
-file_CORR.write("  ".join(map(str,corr_ver_y)) + " " + "\n")
-file_CORR.write("  ".join(map(str,corr_ver_z)) + " " + "\n")
-
 file_CORR = open( PATH + "observables/nn_corr_phi%.2f.txt" % phi ,"a")
-file_CORR.write("  ".join(map(str, np.array(corr_hor_x) + np.array(corr_hor_y) + np.array(corr_hor_z))) + " " + "\n")
-file_CORR.write("  ".join(map(str,corr_ver_x + corr_ver_y + corr_ver_z)) + " " + "\n")
+file_CORR.write("  ".join(map(str, np.array(corr_ver_pm)/2. + np.array(corr_ver_mp)/2. + np.array(corr_ver_z))) + " " + "\n")
+file_CORR.write("  ".join(map(str, np.array(corr_hor_pm)/2. + np.array(corr_hor_mp)/2. + np.array(corr_hor_z))) + " " + "\n")
 
 
 # file_Energy.write(repr(E) + " " + "\n")

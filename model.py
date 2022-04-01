@@ -20,16 +20,55 @@ class RING_EXCHANGE(CouplingModel,MPOModel):
         
         Lx = model_params.get('Lx', 1)
         Ly = model_params.get('Ly', 2)
-        J = model_params.get('J', 1.0)
-        eta = model_params.get('eta', 1.0)
+        phi = model_params.get('phi', 0.)
+        # J = model_params.get('J', 1.0)
+        # eta = model_params.get('eta', 1.0)
         bc_MPS = model_params.get('bc_MPS', 'infinite')
         bc = model_params.get('bc', 'periodic')
+        # bc_MPS = model_params.get('bc_MPS', 'finite')
+        # bc = model_params.get('bc', 'open')
+        qn = model_params.get('qn', None)
 
-        site = SpinHalfSite(conserve=None)
+        site = SpinHalfSite(conserve=qn)
         lat = Square(Lx=Lx, Ly=Ly, site=site, bc=bc, bc_MPS=bc_MPS)
         
         CouplingModel.__init__(self, lat)
+        
+        # Heisenberg term
+        s = np.sin(phi*np.pi)
+        self.add_coupling( s,    0, 'Sz', 0, 'Sz', [1, 0])
+        self.add_coupling( s/2., 0, 'Sp', 0, 'Sm', [1, 0])
+        self.add_coupling( s/2., 0, 'Sm', 0, 'Sp', [1, 0])
+        self.add_coupling( s,    0, 'Sz', 0, 'Sz', [0, 1])
+        self.add_coupling( s/2., 0, 'Sp', 0, 'Sm', [0, 1])
+        self.add_coupling( s/2., 0, 'Sm', 0, 'Sp', [0, 1])
+        
+        # Ring-exchange term
+        c = np.cos(phi*np.pi)
+        # (S_{i} . S_{i+y}) (S_{i+x} . S_{i+x+y}) 
+        self.add_multi_coupling( c/4., [('Sp', [0,0], 0), ('Sm', [0,1], 0), ('Sp', [1,0], 0), ('Sm', [1,1], 0)])
+        self.add_multi_coupling( c/4., [('Sm', [0,0], 0), ('Sp', [0,1], 0), ('Sp', [1,0], 0), ('Sm', [1,1], 0)])
+        self.add_multi_coupling( c/2., [('Sz', [0,0], 0), ('Sz', [0,1], 0), ('Sp', [1,0], 0), ('Sm', [1,1], 0)])
+        self.add_multi_coupling( c/4., [('Sp', [0,0], 0), ('Sm', [0,1], 0), ('Sm', [1,0], 0), ('Sp', [1,1], 0)])
+        self.add_multi_coupling( c/4., [('Sm', [0,0], 0), ('Sp', [0,1], 0), ('Sm', [1,0], 0), ('Sp', [1,1], 0)])
+        self.add_multi_coupling( c/2., [('Sz', [0,0], 0), ('Sz', [0,1], 0), ('Sm', [1,0], 0), ('Sp', [1,1], 0)])
+        self.add_multi_coupling( c/2., [('Sp', [0,0], 0), ('Sm', [0,1], 0), ('Sz', [1,0], 0), ('Sz', [1,1], 0)])
+        self.add_multi_coupling( c/2., [('Sm', [0,0], 0), ('Sp', [0,1], 0), ('Sz', [1,0], 0), ('Sz', [1,1], 0)])
+        self.add_multi_coupling( c,    [('Sz', [0,0], 0), ('Sz', [0,1], 0), ('Sz', [1,0], 0), ('Sz', [1,1], 0)])
 
+        # (S_{i} . S_{i+x}) (S_{i+y} . S_{i+x+y}) 
+        self.add_multi_coupling( c/4., [('Sp', [0,0], 0), ('Sm', [1,0], 0), ('Sp', [0,1], 0), ('Sm', [1,1], 0)])
+        self.add_multi_coupling( c/4., [('Sm', [0,0], 0), ('Sp', [1,0], 0), ('Sp', [0,1], 0), ('Sm', [1,1], 0)])
+        self.add_multi_coupling( c/2., [('Sz', [0,0], 0), ('Sz', [1,0], 0), ('Sp', [0,1], 0), ('Sm', [1,1], 0)])
+        self.add_multi_coupling( c/4., [('Sp', [0,0], 0), ('Sm', [1,0], 0), ('Sm', [0,1], 0), ('Sp', [1,1], 0)])
+        self.add_multi_coupling( c/4., [('Sm', [0,0], 0), ('Sp', [1,0], 0), ('Sm', [0,1], 0), ('Sp', [1,1], 0)])
+        self.add_multi_coupling( c/2., [('Sz', [0,0], 0), ('Sz', [1,0], 0), ('Sm', [0,1], 0), ('Sp', [1,1], 0)])
+        self.add_multi_coupling( c/2., [('Sp', [0,0], 0), ('Sm', [1,0], 0), ('Sz', [0,1], 0), ('Sz', [1,1], 0)])
+        self.add_multi_coupling( c/2., [('Sm', [0,0], 0), ('Sp', [1,0], 0), ('Sz', [0,1], 0), ('Sz', [1,1], 0)])
+        self.add_multi_coupling( c,    [('Sz', [0,0], 0), ('Sz', [1,0], 0), ('Sz', [0,1], 0), ('Sz', [1,1], 0)])
+        
+
+        '''
         # Heisenberg term
         c = 8 * 0.5 * ( 0.5 + eta ) # c = 8 * s * ( s + eta )
         self.add_coupling( c, 0, 'Sx', 0, 'Sx', [1, 0])
@@ -40,7 +79,6 @@ class RING_EXCHANGE(CouplingModel,MPOModel):
         self.add_coupling( c, 0, 'Sz', 0, 'Sz', [0, 1])
         
         # Ring-exchange term
-
         # (S_{i} . S_{i+y}) (S_{i+x} . S_{i+x+y}) 
         self.add_multi_coupling( 4.0 * J , [('Sx', [0,0], 0), ('Sx', [0,1], 0), ('Sx', [1,0], 0), ('Sx', [1,1], 0)])
         self.add_multi_coupling( 4.0 * J , [('Sy', [0,0], 0), ('Sy', [0,1], 0), ('Sx', [1,0], 0), ('Sx', [1,1], 0)])
@@ -52,7 +90,6 @@ class RING_EXCHANGE(CouplingModel,MPOModel):
         self.add_multi_coupling( 4.0 * J , [('Sy', [0,0], 0), ('Sy', [0,1], 0), ('Sz', [1,0], 0), ('Sz', [1,1], 0)])
         self.add_multi_coupling( 4.0 * J , [('Sz', [0,0], 0), ('Sz', [0,1], 0), ('Sz', [1,0], 0), ('Sz', [1,1], 0)])
 
-
         # (S_{i} . S_{i+x}) (S_{i+y} . S_{i+x+y}) 
         self.add_multi_coupling( 4.0 * J , [('Sx', [0,0], 0), ('Sx', [1,0], 0), ('Sx', [0,1], 0), ('Sx', [1,1], 0)])
         self.add_multi_coupling( 4.0 * J , [('Sy', [0,0], 0), ('Sy', [1,0], 0), ('Sx', [0,1], 0), ('Sx', [1,1], 0)])
@@ -63,7 +100,7 @@ class RING_EXCHANGE(CouplingModel,MPOModel):
         self.add_multi_coupling( 4.0 * J , [('Sx', [0,0], 0), ('Sx', [1,0], 0), ('Sz', [0,1], 0), ('Sz', [1,1], 0)])
         self.add_multi_coupling( 4.0 * J , [('Sy', [0,0], 0), ('Sy', [1,0], 0), ('Sz', [0,1], 0), ('Sz', [1,1], 0)])
         self.add_multi_coupling( 4.0 * J , [('Sz', [0,0], 0), ('Sz', [1,0], 0), ('Sz', [0,1], 0), ('Sz', [1,1], 0)])
+        '''
 
-        
         MPOModel.__init__(self, lat, self.calc_H_MPO())
         
