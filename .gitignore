@@ -1,6 +1,11 @@
 # Data folder
 DATAs/
+DATAs_CEDAR/
 Analysis/
+entanglement/
+logs/
+mps/
+observables/
 
 # Dependency directories
 __pycache__/
