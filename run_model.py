@@ -41,7 +41,10 @@ Lx = int(sys.argv[1])
 Ly = int(sys.argv[2])
 phi = float(sys.argv[3])
 CHI = int(sys.argv[4])
-PATH = sys.argv[5]
+QN = sys.argv[5]
+IS = sys.argv[6]
+RM = sys.argv[7]
+PATH = sys.argv[8]
 
 model_params = {
     "Lx": Lx,
@@ -49,28 +52,53 @@ model_params = {
     # "J": J,
     # "eta": eta
     "phi": phi,
-    "qn": 'Sz'
+    "qn": QN
 }
 
 print("\n\n\n%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 M = model.RING_EXCHANGE(model_params)
 
-product_state = ["up","down"] * int(M.lat.N_sites/2)
+if IS == 'all_up':
+    product_state = ["up"] * int(M.lat.N_sites)
+elif IS == 'neel':
+    product_state = ( ["up", "down"] * int(Ly/2) + ["down", "up"] * int(Ly/2) ) * int(Lx/2)
+    # product_state = ["up", "down"] * int(M.lat.N_sites/2)
+elif IS == 'plateau':
+    product_state = ( ["up", "down"] * int(Ly/2) + ["up"] * int(Ly) ) * int(Lx/2)
+    
+
 psi = MPS.from_product_state(M.lat.mps_sites(), product_state, bc=M.lat.bc_MPS)
 
-# TEBD_params = {'N_steps': 10, 'trunc_params':{'chi_max': 20}, 'verbose': 0}
-# eng = tebd.RandomUnitaryEvolution(psi, TEBD_params)
-# eng.run()
-# psi.canonical_form() 
+if RM == 'randomize':
+    TEBD_params = {'N_steps': 10, 'trunc_params':{'chi_max': 20}, 'verbose': 0}
+    eng = tebd.RandomUnitaryEvolution(psi, TEBD_params)
+    eng.run()
+    psi.canonical_form() 
+
+dchi = int(CHI/3)
+chi_list = {}
+for i in range(5):
+    chi_list[i*10] = (i+1)*dchi
 
 dmrg_params = {
     'mixer': True,  # setting this to True helps to escape local minima
+    'mixer_params': {
+        'amplitude': 1.e-5,
+        'decay': 1.2,
+        'disable_after': 50
+    },
     'trunc_params': {
         'chi_max': CHI,
         'svd_min': 1.e-10
     },
-    'max_E_err': 1.e-10,
-    'max_sweeps': 100
+    'lanczos_params': {
+            'N_min': 5,
+            'N_max': 20
+    },
+    'chi_list': chi_list,
+    'max_E_err': 1.0e-9,
+    'max_S_err': 1.0e-5,
+    'max_sweeps': 150
 }
 
 eng = dmrg.TwoSiteDMRGEngine(psi, M, dmrg_params)
@@ -91,7 +119,7 @@ corr_hor_mp =[]
 corr_hor_z =[]
 
 # measuring NN spin correlation
-for i in range(0,Lx):
+for i in range(0,Lx): 
     for j in range(0, Ly):
 
         I = i*Ly + j
@@ -113,33 +141,33 @@ ensure_dir(PATH + "entanglement/")
 ensure_dir(PATH + "logs/")
 ensure_dir(PATH + "mps/")
 
-file_Energy = open( PATH + "observables/energy_phi%.2f.txt" % phi,"a")
+file_Energy = open( PATH + "observables/energy_phi%.3f.txt" % phi,"a")
 file_Energy.write(repr(E) + " " + repr(psi.correlation_length()) + " " + "\n")
 
-file_Ss = open( PATH + "observables/magnetization_phi%.2f.txt" % phi,"a")
-file_Ss.write("  ".join(map(str, mag_p)) + " " + "\n")
-file_Ss.write("  ".join(map(str, mag_m)) + " " + "\n")
+file_Ss = open( PATH + "observables/magnetization_phi%.3f.txt" % phi,"a")
+file_Ss.write("  ".join(map(str, (mag_p+mag_m)/2.)) + " " + "\n")
+file_Ss.write("  ".join(map(str, (mag_p-mag_m)/2.)) + " " + "\n")
 file_Ss.write("  ".join(map(str, mag_z)) + " " + "\n")
 
-file_CORR = open( PATH + "observables/nn_corr_phi%.2f.txt" % phi ,"a")
+file_CORR = open( PATH + "observables/nn_corr_phi%.3f.txt" % phi ,"a")
 file_CORR.write("  ".join(map(str, np.array(corr_ver_pm)/2. + np.array(corr_ver_mp)/2. + np.array(corr_ver_z))) + " " + "\n")
 file_CORR.write("  ".join(map(str, np.array(corr_hor_pm)/2. + np.array(corr_hor_mp)/2. + np.array(corr_hor_z))) + " " + "\n")
 
 
 # file_Energy.write(repr(E) + " " + "\n")
-file_ES = open( PATH + "entanglement/es_phi%.2f.txt" % phi,"a")
+file_ES = open( PATH + "entanglement/es_phi%.3f.txt" % phi,"a")
 for i in range(0,Lx*Ly):
     file_ES.write("  ".join(map(str, ES[i])) + " " + "\n")
-file_EE = open( PATH + "entanglement/ee_phi%.2f.txt" % phi,"a")
+file_EE = open( PATH + "entanglement/ee_phi%.3f.txt" % phi,"a")
 file_EE.write("  ".join(map(str, EE)) + " " + "\n")
 
-file_STAT = open( PATH + "logs/stat_phi%.2f.txt" % phi,"a")
+file_STAT = open( PATH + "logs/stat_phi%.3f.txt" % phi,"a")
 file_STAT.write("  ".join(map(str,eng.sweep_stats['E'])) + " " + "\n")
 file_STAT.write("  ".join(map(str,eng.sweep_stats['S'])) + " " + "\n")
 file_STAT.write("  ".join(map(str,eng.sweep_stats['max_trunc_err'])) + " " + "\n")
 file_STAT.write("  ".join(map(str,eng.sweep_stats['norm_err'])) + " " + "\n")
 
-with open( PATH + 'mps/psi_phi%.2f.pkl' % phi, 'wb') as f:
+with open( PATH + 'mps/psi_phi%.3f.pkl' % phi, 'wb') as f:
     pickle.dump(psi, f)
 
 print("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n\n\n")
