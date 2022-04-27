@@ -75,7 +75,7 @@ if RM == 'randomize':
     eng.run()
     psi.canonical_form() 
 
-dchi = int(CHI/3)
+dchi = int(CHI/5)
 chi_list = {}
 for i in range(5):
     chi_list[i*10] = (i+1)*dchi
@@ -85,7 +85,7 @@ dmrg_params = {
     'mixer_params': {
         'amplitude': 1.e-5,
         'decay': 1.2,
-        'disable_after': 50
+        'disable_after': 30
     },
     'trunc_params': {
         'chi_max': CHI,
