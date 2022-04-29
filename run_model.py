@@ -75,21 +75,21 @@ if RM == 'randomize':
     eng.run()
     psi.canonical_form() 
 
-dchi = int(CHI/5)
+dchi = int(CHI/2)
 chi_list = {}
-for i in range(5):
+for i in range(2):
     chi_list[i*10] = (i+1)*dchi
 
 dmrg_params = {
     'mixer': True,  # setting this to True helps to escape local minima
     'mixer_params': {
         'amplitude': 1.e-5,
-        'decay': 1.2,
-        'disable_after': 30
+        'decay': 1.1,
+        'disable_after': 50
     },
     'trunc_params': {
         'chi_max': CHI,
-        'svd_min': 1.e-10
+        'svd_min': 1.e-9
     },
     'lanczos_params': {
             'N_min': 5,
@@ -98,7 +98,7 @@ dmrg_params = {
     'chi_list': chi_list,
     'max_E_err': 1.0e-9,
     'max_S_err': 1.0e-5,
-    'max_sweeps': 150
+    'max_sweeps': 200
 }
 
 eng = dmrg.TwoSiteDMRGEngine(psi, M, dmrg_params)
