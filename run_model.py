@@ -52,7 +52,8 @@ model_params = {
     # "J": J,
     # "eta": eta
     "phi": phi,
-    "qn": QN
+    "qn": QN,
+    'bc': 'periodic'
 }
 
 print("\n\n\n%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
@@ -96,8 +97,8 @@ dmrg_params = {
             'N_max': 20
     },
     'chi_list': chi_list,
-    'max_E_err': 1.0e-9,
-    'max_S_err': 1.0e-5,
+    'max_E_err': 1.0e-8,
+    'max_S_err': 1.0e-4,
     'max_sweeps': 200
 }
 
