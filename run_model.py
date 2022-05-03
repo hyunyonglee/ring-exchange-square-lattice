@@ -142,33 +142,46 @@ ensure_dir(PATH + "entanglement/")
 ensure_dir(PATH + "logs/")
 ensure_dir(PATH + "mps/")
 
-file_Energy = open( PATH + "observables/energy_phi%.3f.txt" % phi,"a")
+file1 = open( PATH + "observables/energy.txt" % phi,"a")
+file1.write(repr(phi) + " " + repr(E) + " " + repr(psi.correlation_length()) + " " + "\n")
+
+file2 = open( PATH + "observables/sx.txt" % phi,"a")
+file3.write(repr(phi) + " " + "  ".join(map(str, np.real(mag_p+mag_m)/2.)) + " " + "\n")
+
+file3 = open( PATH + "observables/sy.txt" % phi,"a")
+file3.write( repr(phi) + " " + "  ".join(map(str, np.imag(mag_p-mag_m)/2.)) + " " + "\n")
+
+file4 = open( PATH + "observables/sz.txt" % phi,"a")
+file4.write( repr(phi) + " " + "  ".join(map(str, mag_z)) + " " + "\n")  
+
+
+file_Energy = open( PATH + "observables/energy_phi%.5f.txt" % phi,"a")
 file_Energy.write(repr(E) + " " + repr(psi.correlation_length()) + " " + "\n")
 
-file_Ss = open( PATH + "observables/magnetization_phi%.3f.txt" % phi,"a")
-file_Ss.write("  ".join(map(str, (mag_p+mag_m)/2.)) + " " + "\n")
-file_Ss.write("  ".join(map(str, (mag_p-mag_m)/2.)) + " " + "\n")
-file_Ss.write("  ".join(map(str, mag_z)) + " " + "\n")
+file_Ss = open( PATH + "observables/magnetization_phi%.5f.txt" % phi,"a")
+file_Ss.write("  ".join(map(str, np.real(mag_p+mag_m)/2.)) + " " + "\n")
+file_Ss.write("  ".join(map(str, np.imag(mag_p-mag_m)/2.)) + " " + "\n")
+file_Ss.write("  ".join(map(str, mag_z)) + " " + "\n")  
 
-file_CORR = open( PATH + "observables/nn_corr_phi%.3f.txt" % phi ,"a")
+file_CORR = open( PATH + "observables/nn_corr_phi%.5f.txt" % phi ,"a")
 file_CORR.write("  ".join(map(str, np.array(corr_ver_pm)/2. + np.array(corr_ver_mp)/2. + np.array(corr_ver_z))) + " " + "\n")
 file_CORR.write("  ".join(map(str, np.array(corr_hor_pm)/2. + np.array(corr_hor_mp)/2. + np.array(corr_hor_z))) + " " + "\n")
 
 
 # file_Energy.write(repr(E) + " " + "\n")
-file_ES = open( PATH + "entanglement/es_phi%.3f.txt" % phi,"a")
+file_ES = open( PATH + "entanglement/es_phi%.5f.txt" % phi,"a")
 for i in range(0,Lx*Ly):
     file_ES.write("  ".join(map(str, ES[i])) + " " + "\n")
-file_EE = open( PATH + "entanglement/ee_phi%.3f.txt" % phi,"a")
+file_EE = open( PATH + "entanglement/ee_phi%.5f.txt" % phi,"a")
 file_EE.write("  ".join(map(str, EE)) + " " + "\n")
 
-file_STAT = open( PATH + "logs/stat_phi%.3f.txt" % phi,"a")
+file_STAT = open( PATH + "logs/stat_phi%.5f.txt" % phi,"a")
 file_STAT.write("  ".join(map(str,eng.sweep_stats['E'])) + " " + "\n")
 file_STAT.write("  ".join(map(str,eng.sweep_stats['S'])) + " " + "\n")
 file_STAT.write("  ".join(map(str,eng.sweep_stats['max_trunc_err'])) + " " + "\n")
 file_STAT.write("  ".join(map(str,eng.sweep_stats['norm_err'])) + " " + "\n")
 
-with open( PATH + 'mps/psi_phi%.3f.pkl' % phi, 'wb') as f:
+with open( PATH + 'mps/psi_phi%.5f.pkl' % phi, 'wb') as f:
     pickle.dump(psi, f)
 
 print("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n\n\n")
