@@ -142,16 +142,16 @@ ensure_dir(PATH + "entanglement/")
 ensure_dir(PATH + "logs/")
 ensure_dir(PATH + "mps/")
 
-file1 = open( PATH + "observables/energy.txt" % phi,"a")
+file1 = open( PATH + "observables/energy.txt","a")
 file1.write(repr(phi) + " " + repr(E) + " " + repr(psi.correlation_length()) + " " + "\n")
 
-file2 = open( PATH + "observables/sx.txt" % phi,"a")
+file2 = open( PATH + "observables/sx.txt","a")
 file3.write(repr(phi) + " " + "  ".join(map(str, np.real(mag_p+mag_m)/2.)) + " " + "\n")
 
-file3 = open( PATH + "observables/sy.txt" % phi,"a")
+file3 = open( PATH + "observables/sy.txt","a")
 file3.write( repr(phi) + " " + "  ".join(map(str, np.imag(mag_p-mag_m)/2.)) + " " + "\n")
 
-file4 = open( PATH + "observables/sz.txt" % phi,"a")
+file4 = open( PATH + "observables/sz.txt","a")
 file4.write( repr(phi) + " " + "  ".join(map(str, mag_z)) + " " + "\n")  
 
 
