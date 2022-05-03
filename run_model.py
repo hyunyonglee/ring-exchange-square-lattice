@@ -146,7 +146,7 @@ file1 = open( PATH + "observables/energy.txt","a")
 file1.write(repr(phi) + " " + repr(E) + " " + repr(psi.correlation_length()) + " " + "\n")
 
 file2 = open( PATH + "observables/sx.txt","a")
-file3.write(repr(phi) + " " + "  ".join(map(str, np.real(mag_p+mag_m)/2.)) + " " + "\n")
+file2.write(repr(phi) + " " + "  ".join(map(str, np.real(mag_p+mag_m)/2.)) + " " + "\n")
 
 file3 = open( PATH + "observables/sy.txt","a")
 file3.write( repr(phi) + " " + "  ".join(map(str, np.imag(mag_p-mag_m)/2.)) + " " + "\n")
