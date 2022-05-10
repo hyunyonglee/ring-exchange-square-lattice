@@ -84,7 +84,7 @@ for i in range(2):
 dmrg_params = {
     'mixer': True,  # setting this to True helps to escape local minima
     'mixer_params': {
-        'amplitude': 1.e-5,
+        'amplitude': 1.e-3,
         'decay': 1.1,
         'disable_after': 50
     },
