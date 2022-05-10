@@ -25,8 +25,6 @@ class RING_EXCHANGE(CouplingModel,MPOModel):
         # eta = model_params.get('eta', 1.0)
         bc_MPS = model_params.get('bc_MPS', 'infinite')
         bc = model_params.get('bc', ['periodic','open'])
-        # bc_MPS = model_params.get('bc_MPS', 'finite')
-        # bc = model_params.get('bc', 'open')
         qn = model_params.get('qn', None)
 
         site = SpinHalfSite(conserve=qn)

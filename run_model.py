@@ -44,7 +44,8 @@ CHI = int(sys.argv[4])
 QN = sys.argv[5]
 IS = sys.argv[6]
 RM = sys.argv[7]
-PATH = sys.argv[8]
+BC = sys.argv[8]
+PATH = sys.argv[9]
 
 if BC=='open':
     BC = ['periodic','open']
