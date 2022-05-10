@@ -47,7 +47,7 @@ RM = sys.argv[7]
 PATH = sys.argv[8]
 
 if BC=='open':
-    bc = ['periodic','open']
+    BC = ['periodic','open']
 
 model_params = {
     "Lx": Lx,
@@ -56,7 +56,7 @@ model_params = {
     # "eta": eta
     "phi": phi,
     "qn": QN,
-    'bc': 'periodic'
+    'bc': BC
 }
 
 print("\n\n\n%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
