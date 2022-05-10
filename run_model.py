@@ -46,6 +46,9 @@ IS = sys.argv[6]
 RM = sys.argv[7]
 PATH = sys.argv[8]
 
+if BC=='open':
+    bc = ['periodic','open']
+
 model_params = {
     "Lx": Lx,
     "Ly": Ly,
