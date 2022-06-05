@@ -69,7 +69,10 @@ elif IS == 'neel':
     product_state = ( ["up", "down"] * int(Ly/2) + ["down", "up"] * int(Ly/2) ) * int(Lx/2)
     # product_state = ["up", "down"] * int(M.lat.N_sites/2)
 elif IS == 'plateau':
-    product_state = ( ["up", "down"] * int(Ly/2) + ["up"] * int(Ly) ) * int(Lx/2)
+    if Ly%2 == 1:
+        product_state = ( ["up"] * int(Ly) + ["up","down"] * int(Ly//2) + ["up"] ) * int(Lx/2)
+    else:
+        product_state = ( ["up", "down"] * int(Ly/2) + ["up"] * int(Ly) ) * int(Lx/2)
     
 
 psi = MPS.from_product_state(M.lat.mps_sites(), product_state, bc=M.lat.bc_MPS)
@@ -88,7 +91,7 @@ for i in range(2):
 dmrg_params = {
     'mixer': True,  # setting this to True helps to escape local minima
     'mixer_params': {
-        'amplitude': 1.e-3,
+        'amplitude': 1.e-2,
         'decay': 1.1,
         'disable_after': 50
     },
